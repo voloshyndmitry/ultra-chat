@@ -63,7 +63,7 @@ function updateUserList(socketIds) {
   });
 }
 
-const socket = io.connect("ultra-chat.herokuapp.com");
+const socket = io.connect("ultra-chat.vercel.app");
 
 socket.on("update-user-list", ({ users }) => {
   updateUserList(users);
