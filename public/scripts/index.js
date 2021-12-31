@@ -145,6 +145,7 @@ navigator.mediaDevices
   .then((stream) => {
     console.log("stream<<<<<");
     const video = document.getElementById("local-video");
+    video.setAttribute("playsinline", true);
     if (video) {
       if ("srcObject" in video) {
         video.srcObject = stream;
