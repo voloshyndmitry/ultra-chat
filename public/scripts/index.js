@@ -124,11 +124,19 @@ socket.on("call-rejected", (data) => {
 
 peerConnection.ontrack = function ({ streams: [stream] }) {
   const remoteVideo = document.getElementById("remote-video");
-
+  remoteVideo.setAttribute("playsinline", true);
   console.log("remoteVideo >>>>", remoteVideo);
 
   if (remoteVideo) {
-    remoteVideo.srcObject = stream;
+    if ("srcObject" in remoteVideo) {
+      remoteVideo.srcObject = stream;
+    } else {
+      // Avoid using this in new browsers, as it is going away.
+      remoteVideo.src = window.URL.createObjectURL(stream);
+    }
+    remoteVideo.onloadedmetadata = function (e) {
+      remoteVideo.play();
+    };
   }
 };
 const options = {
