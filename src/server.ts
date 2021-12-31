@@ -37,7 +37,7 @@ export class Server {
     this.app.get("/", (req, res, next) => {
       
       const fileName = "index.html";
-      console.log("GET <<<", fileName)
+
       res.sendFile("index.html", options, function (err) {
         if (err) {
             next(err);
