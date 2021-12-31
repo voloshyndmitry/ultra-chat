@@ -2,7 +2,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/index.js",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts"
+    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
+    "logs": "heroku logs --tail --app ultra-chat"
   },
   "devDependencies": {
     "@types/express": "^4.17.2",
