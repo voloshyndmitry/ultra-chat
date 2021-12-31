@@ -31,8 +31,18 @@ export class Server {
   }
 
   private configureRoutes(): void {
-    this.app.get("/", (req, res) => {
-      res.sendFile("index.html");
+    var options = {
+      root: path.join(__dirname)
+  };
+    this.app.get("/", (req, res, next) => {
+      const fileName = "index.html";
+      res.sendFile("index.html", options, function (err) {
+        if (err) {
+            next(err);
+        } else {
+            console.log('Sent:', fileName);
+        }
+    });
     });
   }
 
