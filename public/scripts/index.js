@@ -12,7 +12,7 @@ function unselectUsersFromList() {
     ".active-user.active-user--selected"
   );
 
-  alreadySelectedUser.forEach(el => {
+  alreadySelectedUser.forEach((el) => {
     el.setAttribute("class", "active-user");
   });
 }
@@ -46,14 +46,14 @@ async function callUser(socketId) {
 
   socket.emit("call-user", {
     offer,
-    to: socketId
+    to: socketId,
   });
 }
 
 function updateUserList(socketIds) {
   const activeUserContainer = document.getElementById("active-user-container");
 
-  socketIds.forEach(socketId => {
+  socketIds.forEach((socketId) => {
     const alreadyExistingUser = document.getElementById(socketId);
     if (!alreadyExistingUser) {
       const userContainerEl = createUserItemContainer(socketId);
@@ -77,16 +77,16 @@ socket.on("remove-user", ({ socketId }) => {
   }
 });
 
-socket.on("call-made", async data => {
+socket.on("call-made", async (data) => {
   if (getCalled) {
     const confirmed = confirm(
       `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
     );
-        console.log("confirmed >>>>", confirmed)
+    console.log("confirmed >>>>", confirmed);
 
     if (!confirmed) {
       socket.emit("reject-call", {
-        from: data.socket
+        from: data.socket,
       });
 
       return;
@@ -101,12 +101,12 @@ socket.on("call-made", async data => {
 
   socket.emit("make-answer", {
     answer,
-    to: data.socket
+    to: data.socket,
   });
   getCalled = true;
 });
 
-socket.on("answer-made", async data => {
+socket.on("answer-made", async (data) => {
   await peerConnection.setRemoteDescription(
     new RTCSessionDescription(data.answer)
   );
@@ -117,34 +117,50 @@ socket.on("answer-made", async data => {
   }
 });
 
-socket.on("call-rejected", data => {
+socket.on("call-rejected", (data) => {
   alert(`User: "Socket: ${data.socket}" rejected your call.`);
   unselectUsersFromList();
 });
 
-peerConnection.ontrack = function({ streams: [stream] }) {
+peerConnection.ontrack = function ({ streams: [stream] }) {
   const remoteVideo = document.getElementById("remote-video");
 
-  console.log('remoteVideo >>>>', remoteVideo);
+  console.log("remoteVideo >>>>", remoteVideo);
 
   if (remoteVideo) {
     remoteVideo.srcObject = stream;
   }
 };
+const options = {
+  audio: true,
+  video: {
+    facingMode: "user",
+    width: { min: 1024, ideal: 1280, max: 1920 },
+    height: { min: 576, ideal: 720, max: 1080 },
+  },
+};
 
-navigator.mediaDevices.getUserMedia(
-  { video: true, audio: true }).then(
-  stream => {
-      console.log("stream<<<<<")
-    const localVideo = document.getElementById("local-video");
-    console.log("localVideo >>>", localVideo);
-    if (localVideo) {
-      localVideo.srcObject = stream;
+navigator.mediaDevices
+  .getUserMedia(options)
+  .then((stream) => {
+    console.log("stream<<<<<");
+    const video = document.getElementById("local-video");
+    if (video) {
+      if ("srcObject" in video) {
+        video.srcObject = stream;
+      } else {
+        // Avoid using this in new browsers, as it is going away.
+        video.src = window.URL.createObjectURL(stream);
+      }
+      video.onloadedmetadata = function (e) {
+        video.play();
+      };
     }
 
-    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-  }).catch(
-  error => {
+    stream
+      .getTracks()
+      .forEach((track) => peerConnection.addTrack(track, stream));
+  })
+  .catch((error) => {
     console.warn(error.message);
-  }
-);
+  });
