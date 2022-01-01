@@ -65,6 +65,7 @@ body {
     cursor: pointer;
     user-select: none;
   }
+
   @media screen and (max-width: 800px) {
     .active-user {
       display: block;
@@ -90,7 +91,7 @@ body {
     border-right: 5px solid #65a9e5;
     font-weight: 500;
     transition: all 0.5s ease;
-  }
+  } 
   
   .video-chat-container {
     padding: 0 20px;
