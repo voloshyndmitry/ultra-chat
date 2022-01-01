@@ -4,10 +4,17 @@ let getCalled = false;
 const existingCalls = [];
 const socket = io.connect("ultra-chat.herokuapp.com");
 const talkingWithInfo = document.getElementById("talking-with-info");
+const userContainerEl = document.createElement("div");
+const usernameEl = document.createElement("p");
+const defaultTitle = "Select active user on the left menu";
 
 const { RTCPeerConnection, RTCSessionDescription } = window;
 
 const peerConnection = new RTCPeerConnection();
+
+function setTitle(text = defaultTitle) {
+  talkingWithInfo.innerHTML = text;
+}
 
 function unselectUsersFromList() {
   const alreadySelectedUser = document.querySelectorAll(
@@ -20,49 +27,48 @@ function unselectUsersFromList() {
 }
 
 function createUserItemContainer(socketId) {
-  const userContainerEl = document.createElement("div");
-
-  const usernameEl = document.createElement("p");
-
   userContainerEl.setAttribute("class", "active-user");
   userContainerEl.setAttribute("id", socketId);
   usernameEl.setAttribute("class", "username");
-  usernameEl.innerHTML = `User: ${socketId}`;
+  usernameEl.innerText = `User: ${socketId}`;
 
   userContainerEl.appendChild(usernameEl);
 
-  userContainerEl.addEventListener("click", () => {
-    if (isAlreadyCalling) {
-      return;
-    }
-    isAlreadyCalling = true;
+  function handleClick() {
+    // if (isAlreadyCalling) {
+    //   return;
+    // }
+    // isAlreadyCalling = true;
     unselectUsersFromList();
     userContainerEl.setAttribute("class", "active-user active-user--selected");
-    talkingWithInfo.innerHTML = `Calling ...`;
+    setTitle(`Calling ...`);
     callUser(socketId);
-  });
+  }
+
+  userContainerEl.addEventListener("click", debounce(handleClick, 1000));
 
   return userContainerEl;
 }
 
 async function callUser(socketId) {
-  const offer = await peerConnection.createOffer();
   try {
+    const offer = await peerConnection.createOffer();
+
     await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
+    console.log("offer >>>>", offer);
     socket.emit("call-user", {
       offer,
       to: socketId,
     });
   } catch (error) {
+    setTitle();
     isAlreadyCalling = false;
   }
 }
 
 socket.on("call-made", async (data) => {
   console.log("call-made<<<");
-  if (getCalled) {
-    return;
-  }
+
   const confirmed = confirm(
     `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
   );
@@ -77,7 +83,6 @@ socket.on("call-made", async (data) => {
   }
   //   }
 
-  talkingWithInfo.innerHTML = `Talking with ${data?.socket}`;
   try {
     await peerConnection.setRemoteDescription(
       new RTCSessionDescription(data.offer)
@@ -89,29 +94,40 @@ socket.on("call-made", async (data) => {
       answer,
       to: data.socket,
     });
+    talkingWithInfo.innerHTML = `Talking with ${data?.socket}`;
     getCalled = true;
   } catch (error) {
     getCalled = false;
     isAlreadyCalling = false;
+    setTitle();
     alert(error);
     console.log("error: ", error);
   }
 });
 
 socket.on("answer-made", async (data) => {
-  console.log("answer-made<<<");
-  await peerConnection.setRemoteDescription(
-    new RTCSessionDescription(data.answer)
-  );
+  try {
+    console.log("answer-made<<<", data);
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.answer)
+    );
 
-  if (!isAlreadyCalling) {
+    // if (!isAlreadyCalling) {
+    console.log("Call user!");
     callUser(data.socket);
     isAlreadyCalling = true;
+    // }
+  } catch (error) {
+    console.log("error>>>", error);
+    alert(error);
+    isAlreadyCalling = false;
+    setTitle();
   }
 });
 
 socket.on("call-rejected", (data) => {
   console.log("call-rejected<<<");
+  setTitle();
   alert(`User: "Socket: ${data.socket}" rejected your call.`);
   unselectUsersFromList();
 });
@@ -190,14 +206,26 @@ function updateUserList(socketIds) {
 
 socket.on("update-user-list", ({ users }) => {
   console.log("update-user<<<");
+
   updateUserList(users);
 });
 
 socket.on("remove-user", ({ socketId }) => {
   console.log("remove-user<<<");
+
   const elToRemove = document.getElementById(socketId);
 
   if (elToRemove) {
     elToRemove.remove();
   }
 });
+
+function debounce(func, timeout = 300) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func.apply(this, args);
+    }, timeout);
+  };
+}
