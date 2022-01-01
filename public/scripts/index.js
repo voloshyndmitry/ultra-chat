@@ -36,6 +36,7 @@ function createUserItemContainer(socketId) {
 
   function handleClick() {
     // if (isAlreadyCalling) {
+    //   alert("You already in call");
     //   return;
     // }
     // isAlreadyCalling = true;
@@ -83,45 +84,33 @@ socket.on("call-made", async (data) => {
   }
   //   }
 
-  try {
-    await peerConnection.setRemoteDescription(
-      new RTCSessionDescription(data.offer)
-    );
+  await peerConnection.setRemoteDescription(
+    new RTCSessionDescription(data.offer)
+  );
 
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
-    socket.emit("make-answer", {
-      answer,
-      to: data.socket,
-    });
-    talkingWithInfo.innerHTML = `Talking with ${data?.socket}`;
-    getCalled = true;
-  } catch (error) {
-    getCalled = false;
-    isAlreadyCalling = false;
-    setTitle();
-    alert(error);
-    console.log("error: ", error);
-  }
+  const answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+
+  socket.emit("make-answer", {
+    answer,
+    to: data.socket,
+  });
+
+  talkingWithInfo.innerHTML = `Talking with ${data?.socket}`;
+  getCalled = true;
 });
 
 socket.on("answer-made", async (data) => {
-  try {
-    console.log("answer-made<<<", data);
-    await peerConnection.setRemoteDescription(
-      new RTCSessionDescription(data.answer)
-    );
+  console.log("answer-made<<<", data);
 
-    // if (!isAlreadyCalling) {
+  await peerConnection.setRemoteDescription(
+    new RTCSessionDescription(data.answer)
+  );
+
+  if (!isAlreadyCalling) {
     console.log("Call user!");
     callUser(data.socket);
     isAlreadyCalling = true;
-    // }
-  } catch (error) {
-    console.log("error>>>", error);
-    alert(error);
-    isAlreadyCalling = false;
-    setTitle();
   }
 });
 
