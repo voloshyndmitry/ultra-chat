@@ -42,7 +42,15 @@ function createUserItemContainer(socketId) {
 
 async function callUser(socketId) {
   const offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
+  await peerConnection.setLocalDescription(
+    new RTCSessionDescription(offer),
+    () => {
+      console.log("<<<< CALLED SUCCESS");
+    },
+    (error) => {
+      console.log("CALL ERROR: ", error);
+    }
+  );
 
   socket.emit("call-user", {
     offer,
