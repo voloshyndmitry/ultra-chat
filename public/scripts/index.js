@@ -96,9 +96,11 @@ socket.on("call-made", async (data) => {
   await peerConnection.setRemoteDescription(
     new RTCSessionDescription(data.offer)
   );
-  
+
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+
+  console.log("answer >>>", answer);
 
   socket.emit("make-answer", {
     answer,
@@ -151,7 +153,6 @@ const options = {
 navigator.mediaDevices
   .getUserMedia(options)
   .then((stream) => {
-
     const video = document.getElementById("local-video");
     video.setAttribute("playsinline", true);
     if (video) {

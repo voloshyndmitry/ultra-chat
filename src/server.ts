@@ -32,26 +32,25 @@ export class Server {
 
   private configureRoutes(): void {
     var options = {
-      root: path.join(__dirname)
-  };
+      root: path.join(__dirname),
+    };
     this.app.get("/", (req, res, next) => {
-      
       const fileName = "index.html";
 
       res.sendFile("index.html", options, function (err) {
         if (err) {
-            next(err);
+          next(err);
         } else {
-            console.log('Sent:', fileName);
+          console.log("Sent:", fileName);
         }
-    });
+      });
     });
   }
 
   private handleSocketConnection(): void {
-    this.io.on("connection", socket => {
+    this.io.on("connection", (socket) => {
       const existingSocket = this.activeSockets.find(
-        existingSocket => existingSocket === socket.id
+        (existingSocket) => existingSocket === socket.id
       );
 
       if (!existingSocket) {
@@ -59,41 +58,42 @@ export class Server {
 
         socket.emit("update-user-list", {
           users: this.activeSockets.filter(
-            existingSocket => existingSocket !== socket.id
-          )
+            (existingSocket) => existingSocket !== socket.id
+          ),
         });
 
         socket.broadcast.emit("update-user-list", {
-          users: [socket.id]
+          users: [socket.id],
         });
       }
 
       socket.on("call-user", (data: any) => {
         socket.to(data.to).emit("call-made", {
           offer: data.offer,
-          socket: socket.id
+          socket: socket.id,
         });
       });
 
-      socket.on("make-answer", data => {
+      socket.on("make-answer", (data) => {
+        console.log("make-answer <<<<", data);
         socket.to(data.to).emit("answer-made", {
           socket: socket.id,
-          answer: data.answer
+          answer: data.answer,
         });
       });
 
-      socket.on("reject-call", data => {
+      socket.on("reject-call", (data) => {
         socket.to(data.from).emit("call-rejected", {
-          socket: socket.id
+          socket: socket.id,
         });
       });
 
       socket.on("disconnect", () => {
         this.activeSockets = this.activeSockets.filter(
-          existingSocket => existingSocket !== socket.id
+          (existingSocket) => existingSocket !== socket.id
         );
         socket.broadcast.emit("remove-user", {
-          socketId: socket.id
+          socketId: socket.id,
         });
       });
     });
