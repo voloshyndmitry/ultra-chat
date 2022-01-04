@@ -106,17 +106,17 @@ socket.on("call-made", async (data) => {
   try {
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+
+    console.log("answer >>>", answer);
+
+    socket.emit("make-answer", {
+      answer,
+      to: data.socket,
+    });
+    getCalled = true;
   } catch (error) {
     console.log("setLocalDescription error: ", error);
   }
-
-  console.log("answer >>>", answer);
-
-  socket.emit("make-answer", {
-    answer,
-    to: data.socket,
-  });
-  getCalled = true;
 });
 
 socket.on("answer-made", async (data) => {
