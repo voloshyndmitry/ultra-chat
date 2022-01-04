@@ -41,16 +41,10 @@ function createUserItemContainer(socketId) {
 }
 
 async function callUser(socketId) {
+  console.log("CALL USER <<<< ", socketId);
+  console.log("setLocalDescription <<<< ");
   const offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(
-    new RTCSessionDescription(offer),
-    () => {
-      console.log("<<<< CALLED SUCCESS");
-    },
-    (error) => {
-      console.log("CALL ERROR: ", error);
-    }
-  );
+  await peerConnection.setLocalDescription(new RTCSessionDescription(offer));
 
   socket.emit("call-user", {
     offer,
@@ -86,24 +80,26 @@ socket.on("remove-user", ({ socketId }) => {
 });
 
 socket.on("call-made", async (data) => {
-  if (getCalled) {
-    const confirmed = confirm(
-      `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
-    );
-    console.log("confirmed >>>>", confirmed);
+  //   if (getCalled) {
+  //     const confirmed = confirm(
+  //       `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
+  //     );
+  //     console.log("confirmed >>>>", confirmed);
 
-    if (!confirmed) {
-      socket.emit("reject-call", {
-        from: data.socket,
-      });
+  //     if (!confirmed) {
+  //       socket.emit("reject-call", {
+  //         from: data.socket,
+  //       });
 
-      return;
-    }
-  }
+  //       return;
+  //     }
+  //   }
 
   await peerConnection.setRemoteDescription(
     new RTCSessionDescription(data.offer)
   );
+
+  console.log(">>> make-answer");
 
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
@@ -118,10 +114,13 @@ socket.on("call-made", async (data) => {
 });
 
 socket.on("answer-made", async (data) => {
-  await peerConnection.setRemoteDescription(
-    new RTCSessionDescription(data.answer)
-  );
-
+  try {
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.answer)
+    );
+  } catch (error) {
+    console.log("ERROR <<<<", error);
+  }
   if (!isAlreadyCalling) {
     callUser(data.socket);
     isAlreadyCalling = true;
@@ -150,12 +149,12 @@ peerConnection.ontrack = function ({ streams: [stream] }) {
   }
 };
 const options = {
-  audio: true,
   video: {
     facingMode: "user",
     width: { min: 1024, ideal: 1280, max: 1920 },
     height: { min: 576, ideal: 720, max: 1080 },
   },
+  audio: true,
 };
 
 navigator.mediaDevices
