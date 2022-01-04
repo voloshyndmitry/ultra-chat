@@ -94,15 +94,21 @@ socket.on("call-made", async (data) => {
   //       return;
   //     }
   //   }
-
-  await peerConnection.setRemoteDescription(
-    new RTCSessionDescription(data.offer)
-  );
+  try {
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.offer)
+    );
+  } catch (error) {
+    console.log("setRemoteDescription error: ", error);
+  }
 
   console.log(">>> make-answer");
-
-  const answer = await peerConnection.createAnswer();
-  await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+  try {
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+  } catch (error) {
+    console.log("setLocalDescription error: ", error);
+  }
 
   console.log("answer >>>", answer);
 
