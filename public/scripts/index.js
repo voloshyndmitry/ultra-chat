@@ -140,7 +140,7 @@ socket.on("call-rejected", (data) => {
 
 peerConnection.ontrack = function ({ streams: [stream] }) {
   const remoteVideo = document.getElementById("remote-video");
-  remoteVideo.setAttribute("playsinline", true);
+  //   remoteVideo.setAttribute("playsinline", true);
   console.log("remoteVideo <<<", remoteVideo);
   if (remoteVideo) {
     console.log("in <<<");
