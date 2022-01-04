@@ -145,7 +145,7 @@ peerConnection.ontrack = function ({ streams: [stream] }) {
   if (remoteVideo) {
     console.log("in <<<");
     if ("srcObject" in remoteVideo) {
-      console.log("in2 <<<");
+      console.log("in2 <<<", stream);
       remoteVideo.srcObject = stream;
     } else {
       // Avoid using this in new browsers, as it is going away.
