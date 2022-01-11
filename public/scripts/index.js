@@ -80,43 +80,36 @@ socket.on("remove-user", ({ socketId }) => {
 });
 
 socket.on("call-made", async (data) => {
-  //   if (getCalled) {
-  //     const confirmed = confirm(
-  //       `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
-  //     );
-  //     console.log("confirmed >>>>", confirmed);
-
-  //     if (!confirmed) {
-  //       socket.emit("reject-call", {
-  //         from: data.socket,
-  //       });
-
-  //       return;
-  //     }
-  //   }
-  try {
-    await peerConnection.setRemoteDescription(
-      new RTCSessionDescription(data.offer)
+  if (getCalled) {
+    const confirmed = confirm(
+      `User "Socket: ${data.socket}" wants to call you. Do accept this call?`
     );
-  } catch (error) {
-    console.log("setRemoteDescription error: ", error);
+    console.log("confirmed >>>>", confirmed);
+
+    if (!confirmed) {
+      socket.emit("reject-call", {
+        from: data.socket,
+      });
+
+      return;
+    }
   }
+  await peerConnection.setRemoteDescription(
+    new RTCSessionDescription(data.offer)
+  );
 
   console.log(">>> make-answer");
-  try {
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
 
-    console.log("answer >>>", answer);
+  const answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(new RTCSessionDescription(answer));
 
-    socket.emit("make-answer", {
-      answer,
-      to: data.socket,
-    });
-    getCalled = true;
-  } catch (error) {
-    console.log("setLocalDescription error: ", error);
-  }
+  console.log("answer >>>", answer);
+
+  socket.emit("make-answer", {
+    answer,
+    to: data.socket,
+  });
+  getCalled = true;
 });
 
 socket.on("answer-made", async (data) => {
@@ -144,11 +137,6 @@ peerConnection.ontrack = function ({ streams: [stream] }) {
 
   if (remoteVideo) {
     remoteVideo.srcObject = stream;
-
-    // remoteVideo.onloadedmetadata = function (e) {
-    //   console.log("<<<<< load media >>>>>");
-    //   remoteVideo.play();
-    // };
   }
 };
 const options = {
