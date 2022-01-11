@@ -143,17 +143,12 @@ peerConnection.ontrack = function ({ streams: [stream] }) {
   remoteVideo.setAttribute("playsinline", true);
 
   if (remoteVideo) {
-    if ("srcObject" in remoteVideo) {
-      remoteVideo.srcObject = stream;
-    } else {
-      // Avoid using this in new browsers, as it is going away.
+    remoteVideo.srcObject = stream;
 
-      remoteVideo.src = window.URL.createObjectURL(stream);
-    }
-    remoteVideo.onloadedmetadata = function (e) {
-      console.log("<<<<< load media >>>>>");
-      //   remoteVideo.play();
-    };
+    // remoteVideo.onloadedmetadata = function (e) {
+    //   console.log("<<<<< load media >>>>>");
+    //   remoteVideo.play();
+    // };
   }
 };
 const options = {
